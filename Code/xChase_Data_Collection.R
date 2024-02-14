@@ -10,11 +10,11 @@ library(randomForest)
 library(ggthemes)
 
 # Attain game codes for all games 2008-2022
-# Combine every pitch from the last 250 games of 2022 into one dataset
+# Combine every pitch from the last 1000 games of 2022-2021 into one dataset
 
 game_info <- get_game_info_sup_petti()
 combinedData <- mlb_pbp(game_pk = 718700)
-for(i in 1:1000) {
+for(i in 1:500) {
   print(i)
   combinedData <- rbind(combinedData, mlb_pbp(game_pk = game_info$game_pk[i]), fill = TRUE)
 }
@@ -27,13 +27,12 @@ for(i in 1:1000) {
 
 combinedData <- combinedData |>
   filter(isPitch == "TRUE") |>
-  mutate(same_hand = if_else(matchup.batSide.code == matchup.pitchHand.code, 1, 0)) |>
-  mutate(Swing =  if_else(details.description == "Ball", 0, 1)) |>
-  select(Swing, count.balls.start, count.strikes.start, pitchData.startSpeed, pitchData.extension,
+  select(count.balls.start, count.strikes.start, pitchData.startSpeed, pitchData.extension,
          pitchData.coordinates.pX, pitchData.coordinates.pZ, pitchData.breaks.spinRate,
          pitchData.breaks.spinDirection, pitchData.breaks.breakVertical,
-         pitchData.breaks.breakHorizontal, same_hand, matchup.batSide.code, details.type.code, pitchData.strikeZoneBottom,
-         pitchData.strikeZoneTop)
+         pitchData.breaks.breakHorizontal, matchup.batSide.code, details.type.code, pitchData.strikeZoneBottom,
+         pitchData.strikeZoneTop, details.description) |>
+  mutate()
 
 # Create data frame of only Four Seam Fastballs
 # Filter to only include pitches that are not in the "theoretical strike zone"
@@ -114,7 +113,7 @@ ggplot(
     color = "Expected Swing Rate"
   )
 
-# Strike Visualizations
+# Count/Horizontal location Visualizations
 
 ggplot(
   data = subset(test_FF_data, test_FF_data$height_above_zone < .5 & test_FF_data$height_above_zone > -.5 &
@@ -128,21 +127,8 @@ ggplot(
     subtitle = "0-0 count, pitch is less than .5 feet above or below the zone",
     x = "Horizontal deviation from center (feet)",
     y = "Expected Swing Rate"
-  )
-
-ggplot(
-  data = subset(test_FF_data, test_FF_data$height_above_zone < .5 & test_FF_data$height_above_zone > -1.875 &
-                  test_FF_data$count.balls.start == 0 & test_FF_data$count.strikes.start == 0),
-  mapping = aes(x = pitchData.coordinates.pX, y = swing_pred_prob)
-) +
-  geom_point() +
-  geom_smooth() +
-  labs(
-    title = "Expected swing rate based on Horizontal location",
-    subtitle = "0-0 count, pitch is less than .5 feet above or 1.875 feet below the zone",
-    x = "Horizontal deviation from center (feet)",
-    y = "Expected Swing Rate"
-  )
+  ) +
+  ylim(0,1)
 
 ggplot(
   data = subset(test_FF_data, test_FF_data$height_above_zone < .5 & test_FF_data$height_above_zone > -1.875 &
@@ -156,7 +142,8 @@ ggplot(
     subtitle = "1-0 count, pitch is less than .5 feet above or 1.875 feet below the zone",
     x = "Horizontal deviation from center (feet)",
     y = "Expected Swing Rate"
-  )
+  )+
+  ylim(0,1)
 
 ggplot(
   data = subset(test_FF_data, test_FF_data$height_above_zone < .5 & test_FF_data$height_above_zone > -1.875 &
@@ -170,7 +157,8 @@ ggplot(
     subtitle = "2-0 count, pitch is less than .5 feet above or 1.875 feet below the zone",
     x = "Horizontal deviation from center (feet)",
     y = "Expected Swing Rate"
-  )
+  )+
+  ylim(0,1)
 
 ggplot(
   data = subset(test_FF_data, test_FF_data$height_above_zone < .5 & test_FF_data$height_above_zone > -1.875 &
@@ -184,7 +172,8 @@ ggplot(
     subtitle = "3-0 count, pitch is less than .5 feet above or 1.875 feet below the zone",
     x = "Horizontal deviation from center (feet)",
     y = "Expected Swing Rate"
-  )
+  )+
+  ylim(0,1)
 
 ggplot(
   data = subset(test_FF_data, test_FF_data$height_above_zone < .5 & test_FF_data$height_above_zone > -1.875 &
@@ -198,7 +187,8 @@ ggplot(
     subtitle = "3-1 count, pitch is less than .5 feet above or 1.875 feet below the zone",
     x = "Horizontal deviation from center (feet)",
     y = "Expected Swing Rate"
-  )
+  )+
+  ylim(0,1)
 
 ggplot(
   data = subset(test_FF_data, test_FF_data$height_above_zone < .5 & test_FF_data$height_above_zone > -1.875 &
@@ -212,7 +202,8 @@ ggplot(
     subtitle = "3-2 count, pitch is less than .5 feet above or 1.875 feet below the zone",
     x = "Horizontal deviation from center (feet)",
     y = "Expected Swing Rate"
-  )
+  )+
+  ylim(0,1)
 
 ggplot(
   data = subset(test_FF_data, test_FF_data$height_above_zone < .5 & test_FF_data$height_above_zone > -1.875 &
@@ -226,7 +217,8 @@ ggplot(
     subtitle = "0-1 count, pitch is less than .5 feet above or 1.875 feet below the zone",
     x = "Horizontal deviation from center (feet)",
     y = "Expected Swing Rate"
-  )
+  )+
+  ylim(0,1)
 
 ggplot(
   data = subset(test_FF_data, test_FF_data$height_above_zone < .5 & test_FF_data$height_above_zone > -1.875 &
@@ -240,7 +232,8 @@ ggplot(
     subtitle = "0-2 count, pitch is less than .5 feet above or 1.875 feet below the zone",
     x = "Horizontal deviation from center (feet)",
     y = "Expected Swing Rate"
-  )
+  )+
+  ylim(0,1)
 
 ggplot(
   data = subset(test_FF_data, test_FF_data$height_above_zone < .5 & test_FF_data$height_above_zone > -1.875 &
@@ -254,7 +247,8 @@ ggplot(
     subtitle = "1-1 count, pitch is less than .5 feet above or 1.875 feet below the zone",
     x = "Horizontal deviation from center (feet)",
     y = "Expected Swing Rate"
-  )
+  )+
+  ylim(0,1)
 
 ggplot(
   data = subset(test_FF_data, test_FF_data$height_above_zone < .5 & test_FF_data$height_above_zone > -1.875 &
@@ -268,7 +262,8 @@ ggplot(
     subtitle = "1-2 count, pitch is less than .5 feet above or 1.875 feet below the zone",
     x = "Horizontal deviation from center (feet)",
     y = "Expected Swing Rate"
-  )
+  )+
+  ylim(0,1)
 
 ggplot(
   data = subset(test_FF_data, test_FF_data$height_above_zone < .5 & test_FF_data$height_above_zone > -1.875 &
@@ -282,4 +277,35 @@ ggplot(
     subtitle = "2-2 count, pitch is less than .5 feet above or 1.875 feet below the zone",
     x = "Horizontal deviation from center (feet)",
     y = "Expected Swing Rate"
-  )
+  )+
+  ylim(0,1)
+
+ggplot(
+  data = subset(test_FF_data, test_FF_data$height_above_zone < .5 & test_FF_data$height_above_zone > -1.875 &
+                  test_FF_data$count.balls.start == 2 & test_FF_data$count.strikes.start == 1),
+  mapping = aes(x = pitchData.coordinates.pX, y = swing_pred_prob)
+) +
+  geom_point() +
+  geom_smooth() +
+  labs(
+    title = "Expected swing rate based on Horizontal location",
+    subtitle = "2-1 count, pitch is less than .5 feet above or 1.875 feet below the zone",
+    x = "Horizontal deviation from center (feet)",
+    y = "Expected Swing Rate"
+  )+
+  ylim(0,1)
+
+ggplot(
+  data = subset(test_FF_data, test_FF_data$height_above_zone < .5 & test_FF_data$height_above_zone > -1.875 &
+                  test_FF_data$count.balls.start == 2 & test_FF_data$count.strikes.start == 2),
+  mapping = aes(x = pitchData.coordinates.pX, y = swing_pred_prob)
+) +
+  geom_point() +
+  geom_smooth() +
+  labs(
+    title = "Expected swing rate based on Horizontal location",
+    subtitle = "2-2 count, pitch is less than .5 feet above or 1.875 feet below the zone",
+    x = "Horizontal deviation from center (feet)",
+    y = "Expected Swing Rate"
+  )+
+  ylim(0,1)
